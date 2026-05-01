@@ -1,0 +1,19 @@
+{
+  "name": "cv-canvas",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "docker-compose up",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "prettier": "^3.4.2"
+  }
+}

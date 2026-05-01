@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.next/
+out/
+build/
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Uploads / local file cache
+uploads/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Prisma
+backend/prisma/migrations/*.sql.bak
+
+# Misc
+*.tsbuildinfo
+.turbo/

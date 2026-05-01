@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Only run workspace lint once frontend/backend package.json files exist.
+if [ -f "frontend/package.json" ] || [ -f "backend/package.json" ]; then
+  npm run lint
+fi
