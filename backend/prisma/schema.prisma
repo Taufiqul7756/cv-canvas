@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum CvType {
+  EDITABLE_TEMPLATE
+  EDITABLE_USER
+  INSPIRATION_UPLOAD
+}
+
+enum CvStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VoteType {
+  UP
+  DOWN
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  password       String
+  full_name      String?
+  bio            String?
+  avatar_url     String?
+  role           UserRole @default(USER)
+  is_active      Boolean  @default(true)
+  is_deleted     Boolean  @default(false)
+  email_verified Boolean  @default(false)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  cvs               Cv[]
+  votes             Vote[]
+  comments          Comment[]
+  downloads         Download[]
+  payments          Payment[]
+  reports           Report[]
+  templates_authored Template[] @relation("TemplateAuthor")
+}
+
+model Template {
+  id                Int      @id @default(autoincrement())
+  name              String
+  slug              String   @unique
+  description       String?
+  preview_image_url String?
+  html_structure    String   @db.Text // The CV layout HTML with {{placeholders}}
+  css_styles        String   @db.Text
+  default_data      Json // Empty/example cv_data shape
+  is_active         Boolean  @default(true)
+  is_deleted        Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  author_id Int
+  author    User @relation("TemplateAuthor", fields: [author_id], references: [id])
+  cvs       Cv[]
+}
+
+model Cv {
+  id                 Int      @id @default(autoincrement())
+  title              String
+  slug               String?
+  type               CvType
+  status             CvStatus @default(APPROVED)
+  is_public          Boolean  @default(true)
+  tags               String[] @default([])
+
+  cv_data            Json? // Form data for EDITABLE_*
+  file_url           String? // R2 URL for INSPIRATION_UPLOAD or generated PDF cache
+  thumbnail_url      String? // Cloudinary URL for previews
+  original_file_name String?
+  file_mime_type     String?
+
+  upvotes_count   Int @default(0)
+  downvotes_count Int @default(0)
+  comments_count  Int @default(0)
+  views_count     Int @default(0)
+
+  is_deleted Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user_id        Int
+  user           User      @relation(fields: [user_id], references: [id])
+  template_id    Int?
+  template       Template? @relation(fields: [template_id], references: [id])
+  forked_from_id Int?
+  forked_from    Cv?       @relation("CvFork", fields: [forked_from_id], references: [id])
+  forks          Cv[]      @relation("CvFork")
+
+  votes     Vote[]
+  comments  Comment[]
+  downloads Download[]
+  payments  Payment[]
+  reports   Report[]
+
+  @@index([type, status, is_public, is_deleted])
+  @@index([upvotes_count])
+  @@index([created_at])
+}
+
+model Vote {
+  id         Int      @id @default(autoincrement())
+  vote_type  VoteType
+  created_at DateTime @default(now())
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+  cv_id   Int
+  cv      Cv   @relation(fields: [cv_id], references: [id])
+
+  @@unique([user_id, cv_id])
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  content    String
+  is_deleted Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+  cv_id   Int
+  cv      Cv   @relation(fields: [cv_id], references: [id])
+}
+
+model Download {
+  id            Int      @id @default(autoincrement())
+  is_paid       Boolean  @default(false) // True if covered by an unlock payment
+  downloaded_at DateTime @default(now())
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+  cv_id   Int
+  cv      Cv   @relation(fields: [cv_id], references: [id])
+
+  @@index([user_id, cv_id])
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  amount      Int // Cents/poisha
+  currency    String        @default("USD")
+  status      PaymentStatus @default(PENDING)
+  provider    String // "stripe" | "sslcommerz"
+  provider_id String // External transaction id
+  unlocks_cv  Boolean       @default(true) // True = unlimited downloads of this CV
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+  cv_id   Int
+  cv      Cv   @relation(fields: [cv_id], references: [id])
+
+  @@unique([provider, provider_id])
+}
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  reason     String
+  details    String?
+  resolved   Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+  cv_id   Int
+  cv      Cv   @relation(fields: [cv_id], references: [id])
+}
