@@ -63,12 +63,15 @@ export const uploadInspirationCv = async (
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${detected.ext}`;
     fs.writeFileSync(path.join(UPLOADS_DIR, filename), req.file.buffer);
 
+    // Admins skip the review queue
+    const isAdmin = req.user.role === 'ADMIN';
+
     const cv = await db.cv.create({
       data: {
         title: title.trim(),
         type: 'INSPIRATION_UPLOAD',
-        status: 'PENDING',
-        is_public: false,
+        status: isAdmin ? 'APPROVED' : 'PENDING',
+        is_public: isAdmin,
         tags: parsedTags,
         file_url: `/uploads/${filename}`,
         original_file_name: req.file.originalname,
