@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import { TopBar } from '@/components/layout/TopBar';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HomePage() {
+  const { user } = useAuth();
+
   return (
     <>
       <TopBar />
@@ -11,7 +16,9 @@ export default function HomePage() {
             Discover great CVs
           </h1>
           <p className="max-w-lg text-lg text-ink-muted">
-            Browse community-loved templates and upload your inspiration
+            {user
+              ? `Welcome back, ${user.full_name ?? user.email}`
+              : 'Browse community-loved templates and upload your inspiration'}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -20,12 +27,21 @@ export default function HomePage() {
             >
               Browse CVs
             </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center rounded-card border border-line-strong bg-surface px-6 py-3 text-base font-medium text-ink transition-all hover:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-brand/30"
-            >
-              Sign up
-            </Link>
+            {user ? (
+              <Link
+                href="/upload"
+                className="inline-flex items-center rounded-card border border-line-strong bg-surface px-6 py-3 text-base font-medium text-ink transition-all hover:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-brand/30"
+              >
+                Upload a CV
+              </Link>
+            ) : (
+              <Link
+                href="/register"
+                className="inline-flex items-center rounded-card border border-line-strong bg-surface px-6 py-3 text-base font-medium text-ink transition-all hover:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-brand/30"
+              >
+                Sign up
+              </Link>
+            )}
           </div>
         </div>
       </main>
