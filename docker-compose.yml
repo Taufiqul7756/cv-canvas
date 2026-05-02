@@ -16,6 +16,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    ports:
+      - '0.0.0.0:8080:8000'
     env_file:
       - path: .env
         required: false
@@ -63,7 +65,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - '80:80'
+      - '0.0.0.0:8000:80'
     networks:
       - app-network
     depends_on:
