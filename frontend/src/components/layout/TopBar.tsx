@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, User, Settings, LogOut } from 'lucide-react';
+import { Search, User, Settings, LogOut, ShieldCheck } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -108,6 +108,16 @@ export function TopBar() {
 
               {dropdownOpen && (
                 <div className="absolute right-0 mt-1 w-48 rounded-card border border-line bg-surface py-1 shadow-lg">
+                  {user.role === 'ADMIN' && (
+                    <Link
+                      href="/admin/moderation"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-brand hover:bg-surface-2"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      Moderation Queue
+                    </Link>
+                  )}
                   <Link
                     href="/my-cvs"
                     className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-surface-2"
