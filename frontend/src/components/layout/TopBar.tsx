@@ -1,0 +1,106 @@
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { Search, User, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Logo } from '@/components/ui/Logo';
+import { useAuth } from '@/hooks/useAuth';
+import { authService } from '@/service/authService';
+
+export function TopBar() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await authService().logout();
+    } finally {
+      setDropdownOpen(false);
+      router.push('/');
+      router.refresh();
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-line bg-surface">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
+        <Link href="/" className="flex-shrink-0">
+          <Logo />
+        </Link>
+
+        <div className="hidden flex-1 md:block">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle" />
+            <input
+              type="search"
+              placeholder="Search CVs..."
+              className="w-full rounded-card border border-line-strong bg-surface-2 py-1.5 pl-9 pr-3 text-sm text-ink placeholder:text-ink-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen((o) => !o)}
+                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-brand text-white"
+                aria-label="Account menu"
+              >
+                {user.avatar_url ? (
+                  <Image
+                    src={user.avatar_url}
+                    alt={user.full_name ?? 'Avatar'}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4" />
+                )}
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-1 w-44 rounded-card border border-line bg-surface py-1 shadow-lg">
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-surface-2"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <User className="h-4 w-4 text-ink-subtle" />
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-surface-2"
+                  >
+                    <LogOut className="h-4 w-4 text-ink-subtle" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="inline-flex items-center rounded-card px-3 py-1.5 text-sm font-medium text-ink transition-all hover:bg-surface-2"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center rounded-card bg-brand px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-brand-dark"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
